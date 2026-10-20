@@ -1,0 +1,26 @@
+import pandas as pd
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+
+# 1. Load Data
+# Assume 'df' contains columns: ['order_id', 'latitude', 'longitude', 'weight']
+df = pd.read_csv('daily_deliveries.csv')
+
+# 2. Extract coordinates for clustering
+coordinates = df[['latitude', 'longitude']]
+
+# 3. Apply K-Means Clustering (Assuming we have 5 available drivers today)
+num_drivers = 5
+kmeans = KMeans(n_clusters=num_drivers, random_state=42, n_init=10)
+df['assigned_route'] = kmeans.fit_predict(coordinates)
+
+# 4. Visualize the clustered delivery zones
+plt.scatter(df['longitude'], df['latitude'], c=df['assigned_route'], cmap='viridis')
+plt.scatter(kmeans.cluster_centers_[:, 1], kmeans.cluster_centers_[:, 0], 
+            s=200, c='red', marker='X', label='Zone Centroids')
+plt.title('Delivery Zones Grouped by K-Means Clustering')
+plt.legend()
+plt.show()
+
+# 5. Output for Routing Algorithm
+print(df[['order_id', 'assigned_route']].head())

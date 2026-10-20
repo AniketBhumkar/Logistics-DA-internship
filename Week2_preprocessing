@@ -1,0 +1,29 @@
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+
+# 1. Load Raw Data
+df = pd.read_csv("logistics_shipping_data.csv")
+print("Initial Dataset Size:", df.shape)
+
+# 2. Handling Missing Values
+df = df.dropna(subset=['delivery_date'])
+median_cost = df['freight_cost'].median()
+df['freight_cost'] = df['freight_cost'].fillna(median_cost)
+
+# 3. Outlier Detection & Removal (IQR Method on 'item_weight')
+Q1 = df['item_weight'].quantile(0.25)
+Q3 = df['item_weight'].quantile(0.75)
+IQR = Q3 - Q1
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+
+df = df[(df['item_weight'] >= lower_bound) & (df['item_weight'] <= upper_bound)]
+print("Dataset Size after Outlier Removal:", df.shape)
+
+# 4. Normalization / Scaling
+scaler = MinMaxScaler()
+numerical_cols = ['freight_cost', 'item_weight']
+df[numerical_cols] = scaler.fit_transform(df[numerical_cols])
+
+print(df.head())

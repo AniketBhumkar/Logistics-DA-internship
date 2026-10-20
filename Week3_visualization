@@ -1,0 +1,42 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# 1. Data Simulation
+np.random.seed(42)
+n_samples = 1000
+data = {
+    'Shipment_ID': range(1, n_samples + 1),
+    'Carrier_Type': np.random.choice(['Road', 'Rail', 'Air'], n_samples, p=[0.6, 0.3, 0.1]),
+    'Distance_km': np.random.uniform(50, 2000, n_samples),
+    'Weight_kg': np.random.uniform(10, 5000, n_samples),
+    'Promised_Delivery_Days': np.random.randint(2, 10, n_samples)
+}
+df = pd.DataFrame(data)
+
+df['Actual_Delivery_Days'] = df['Promised_Delivery_Days'] + np.random.normal(0, 1.5, n_samples)
+df['Actual_Delivery_Days'] = df['Actual_Delivery_Days'].apply(lambda x: max(1, round(x)))
+df['Transport_Cost_USD'] = (df['Distance_km'] * 0.5) + (df['Weight_kg'] * 0.2) + np.random.normal(50, 20, n_samples)
+df['Delivery_Delay'] = df['Actual_Delivery_Days'] - df['Promised_Delivery_Days']
+
+# 2. Visualizations
+sns.set_theme(style="whitegrid")
+fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+
+sns.histplot(df['Delivery_Delay'], bins=20, kde=True, ax=axes[0, 0], color='salmon')
+axes[0, 0].set_title('Distribution of Delivery Delays')
+
+corr = df[['Distance_km', 'Weight_kg', 'Transport_Cost_USD', 'Actual_Delivery_Days']].corr()
+sns.heatmap(corr, annot=True, cmap='coolwarm', ax=axes[0, 1])
+axes[0, 1].set_title('Correlation Heatmap')
+
+sns.barplot(x='Carrier_Type', y='Transport_Cost_USD', data=df, ax=axes[1, 0], palette='Blues_d')
+axes[1, 0].set_title('Average Transport Cost by Carrier')
+
+sns.scatterplot(x='Distance_km', y='Transport_Cost_USD', hue='Carrier_Type', data=df, ax=axes[1, 1], alpha=0.7)
+axes[1, 1].set_title('Distance vs. Transport Cost by Carrier')
+
+plt.tight_layout()
+plt.savefig('logistics_visualizations.png')
+plt.show()
